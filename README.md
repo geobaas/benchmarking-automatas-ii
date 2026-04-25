@@ -1,10 +1,10 @@
-# Proyecto: Desarrollo de un Software de Benchmarking ⏱️
+# Proyecto: Desarrollo de un Software de Benchmarking 
 
 **Ingeniería en Sistemas Computacionales | 6o. Semestre**
 
-Este repositorio contiene la implementación de un software de Benchmarking desarrollado para medir y comparar el rendimiento y la eficiencia de diversos algoritmos computacionales y estructuras de datos.
+Este repositorio contiene la implementación de un software de Benchmarking desarrollado para realizar pruebas de rendimiento entre algoritmos que resuelven la misma tarea. El objetivo principal es analizar y comparar su comportamiento midiendo el tiempo de CPU y el uso de memoria bajo las mismas entradas de datos.
 
-## 📋 Datos de la Asignatura y Rúbrica
+## Datos de la Asignatura
 
 * **Nombre de la asignatura:** Lenguajes y Autómatas II
 * **Actividad:** Rúbrica Programa Informático Tema 3
@@ -13,24 +13,42 @@ Este repositorio contiene la implementación de un software de Benchmarking desa
 * **Valor de la prueba:** 40 pts
 * **Grupo:** 6A / 6B / 6C *(Borra los que no correspondan)*
 
-## 🚀 Algoritmos Evaluados
+## Objetivo General
 
-El software realiza pruebas de rendimiento (tiempo de ejecución y uso de recursos) sobre los siguientes 6 enfoques algorítmicos:
+Desarrollar un software que permita realizar pruebas de benchmarking seleccionando al menos dos algoritmos que realicen la misma tarea con diferentes enfoques. El sistema ejecutará ambos algoritmos con los mismos datos de entrada para identificar cuellos de botella y proponer mejoras.
 
-1. **Compresión de archivos:** (Añadir algoritmos usados, ej. *Huffman, LZW*)
-2. **Recorrido de grafos:** (ej. *Búsqueda a lo ancho BFS, Búsqueda en profundidad DFS*)
-3. **Tablas hash:** (Pruebas de inserción, búsqueda y manejo de colisiones)
-4. **Rutas más cortas:** (ej. *Algoritmo de Dijkstra, A**)
-5. **Encriptación:** (ej. *Cifrado César, AES, RSA*)
-6. **Búsqueda binaria en árboles:** (Inserción y búsqueda en *Árboles Binarios de Búsqueda BST*)
+## Algoritmos Evaluados
 
-## 🛠️ Tecnologías y Requisitos
+Se han implementado y comparado pares de algoritmos para las siguientes 6 áreas de estudio:
 
-* **Lenguaje de Programación:** [Especifica tu lenguaje, ej. Python 3.10 / C++ / Java]
-* **Dependencias:** [Lista de librerías necesarias, si aplica]
+1. **Compresión de archivos:** (Ej. Algoritmo 1 vs Algoritmo 2)
+2. **Recorrido de grafos:** (Ej. BFS vs DFS)
+3. **Tablas hash:** (Ej. Resolución por encadenamiento vs Direccionamiento abierto)
+4. **Rutas más cortas:** (Ej. Dijkstra vs Bellman-Ford)
+5. **Encriptación:** (Ej. AES vs RSA)
+6. **Búsqueda binaria en árboles:** (Ej. Árboles AVL vs Árboles Rojo-Negro)
 
-## ⚙️ Instrucciones de Ejecución
+## Características del Benchmarking
 
-1. Clona este repositorio:
+Para garantizar una evaluación justa y precisa, el software cumple con los siguientes parámetros:
+* **Entradas de Datos:** Se utilizan los mismos conjuntos de datos variados (tamaños pequeños, medianos y grandes) para todos los algoritmos evaluados.
+* **Métricas Registradas:**
+  *  Tiempo de ejecución (Uso de CPU).
+  *  Uso de memoria.
+* **Análisis:** Salida de resultados de forma clara, numérica y gráfica para la interpretación de rendimiento.
+
+## Tecnologías y Requisitos
+
+* **Lenguaje de Programación:** Python 3.12
+* **Módulos Nativos (Standard Library):**
+  * `time`: Uso de `time.perf_counter()` para la medición de alta precisión del tiempo de ejecución (CPU).
+  * `tracemalloc`: Para el rastreo detallado y la medición del pico de uso de memoria RAM durante la ejecución de cada algoritmo.
+* **Dependencias Externas (Opcionales):**
+  * `matplotlib` (Para representación gráfica de los resultados).
+
+## 📖 Instrucciones de Uso (Manual de Usuario)
+
+1. **Clonar el repositorio:**
    ```bash
-   git clone [https://github.com/tu_usuario/benchmarking-automatas-ii.git](https://github.com/tu_usuario/benchmarking-automatas-ii.git)
+   git clone [https://github.com/GbReptech/benchmarking-automatas-ii.git](https://github.com/GbReptech/benchmarking-automatas-ii.git)
+   cd benchmarking-automatas-ii
