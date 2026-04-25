@@ -9,13 +9,13 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    # Importaciones de Encriptación
+    # Importaciones
     from algoritmos.encriptacion.encriptacion import encriptar_cesar
     from algoritmos.encriptacion.encriptacionOpt import encriptar_cesar_optimizado
-    
-    # Importaciones de Compresión
     from algoritmos.compresion.compresion import comprimir_origen
     from algoritmos.compresion.compresionOpt import comprimir_optimizado
+    from algoritmos.grafos.grafos import recorrido_bfs
+    from algoritmos.grafos.grafosOpt import recorrido_dfs
 except ImportError as e:
     print(f"Error al importar módulos: {e}")
 
@@ -33,7 +33,6 @@ class BenchmarkingApp(ctk.CTk):
         self.archivo_contenido = ""
         self.tema_actual = ""
 
-        # Layout: Sidebar (izquierda) y Contenedor Principal (derecha)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
@@ -57,15 +56,14 @@ class BenchmarkingApp(ctk.CTk):
         self.lbl_titulo = ctk.CTkLabel(self.main_frame, text="Software de Benchmarking", font=("Arial", 28, "bold"))
         self.lbl_titulo.pack(pady=10)
 
-        self.lbl_subtitulo = ctk.CTkLabel(self.main_frame, text="Seleccione un módulo del menú lateral para comenzar", font=("Arial", 16))
+        self.lbl_subtitulo = ctk.CTkLabel(self.main_frame, text="Seleccione un módulo lateral", font=("Arial", 16))
         self.lbl_subtitulo.pack(pady=5)
 
     def seleccionar_tema(self, tema):
         self.tema_actual = tema
         self.lbl_titulo.configure(text=f"Módulo: {tema}")
-        self.lbl_subtitulo.configure(text="Cargue un archivo .txt para realizar la comparación de algoritmos")
+        self.lbl_subtitulo.configure(text="Cargue un archivo .txt para realizar la comparación")
         
-        # Limpiar área de trabajo al cambiar de tema
         for widget in self.main_frame.winfo_children():
             if widget not in [self.lbl_titulo, self.lbl_subtitulo]:
                 widget.destroy()
@@ -86,43 +84,51 @@ class BenchmarkingApp(ctk.CTk):
                 messagebox.showerror("Error", f"No se pudo leer el archivo: {e}")
 
     def preparar_interfaz_benchmark(self):
-        # Panel para ver códigos/entrada
         frame_visual = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         frame_visual.pack(fill="both", expand=True, padx=10)
 
-        # Nombres dinámicos según el tema
+        # Configurar títulos dependiendo del tema
         if self.tema_actual == "Encriptación":
-            t1, t2 = "César (Sustitución Tradicional)", "César (Optimizado Join)"
+            t1, t2 = "César (For)", "César (Join)"
         elif self.tema_actual == "Compresión de archivos":
-            t1, t2 = "RLE (Concatenación Tradicional)", "RLE (Optimizado Itertools)"
+            t1, t2 = "RLE (For)", "RLE (Itertools)"
+        elif self.tema_actual == "Recorrido de grafos":
+            t1, t2 = "BFS (Anchura - Cola)", "DFS (Profundidad - Pila)"
         else:
             t1, t2 = "Algoritmo Origen", "Algoritmo Optimizado"
 
-        # Columna Izquierda (Origen)
         col1 = ctk.CTkFrame(frame_visual)
         col1.grid(row=0, column=0, padx=10, sticky="nsew")
-        ctk.CTkLabel(col1, text=t1, font=("Arial", 13, "bold"), text_color="#3b8ed0").pack(pady=5)
-        self.txt_preview_1 = ctk.CTkTextbox(col1, width=420, height=200)
-        self.txt_preview_1.pack(padx=10, pady=10)
-        self.txt_preview_1.insert("0.0", f"--- Entrada Lista ---\n{self.archivo_contenido[:300]}...")
+        ctk.CTkLabel(col1, text=t1, font=("Arial", 13, "bold")).pack(pady=5)
+        self.txt_1 = ctk.CTkTextbox(col1, width=420, height=200)
+        self.txt_1.pack(padx=10, pady=10)
+        # AQUÍ ESTABA EL ERROR 1: Faltaba reinsertar la vista previa del archivo
+        self.txt_1.insert("0.0", f"--- Entrada Lista ---\n{self.archivo_contenido[:300]}...")
 
-        # Columna Derecha (Optimizado)
         col2 = ctk.CTkFrame(frame_visual)
         col2.grid(row=0, column=1, padx=10, sticky="nsew")
-        ctk.CTkLabel(col2, text=t2, font=("Arial", 13, "bold"), text_color="#1f6aa5").pack(pady=5)
-        self.txt_preview_2 = ctk.CTkTextbox(col2, width=420, height=200)
-        self.txt_preview_2.pack(padx=10, pady=10)
-        self.txt_preview_2.insert("0.0", f"--- Entrada Lista ---\n{self.archivo_contenido[:300]}...")
+        ctk.CTkLabel(col2, text=t2, font=("Arial", 13, "bold")).pack(pady=5)
+        self.txt_2 = ctk.CTkTextbox(col2, width=420, height=200)
+        self.txt_2.pack(padx=10, pady=10)
+        self.txt_2.insert("0.0", f"--- Entrada Lista ---\n{self.archivo_contenido[:300]}...")
 
-        # Botón para ejecutar el proceso
-        self.btn_run = ctk.CTkButton(self.main_frame, text="⚡ EJECUTAR PRUEBA DE RENDIMIENTO", 
-                                     fg_color="#28a745", hover_color="#218838",
-                                     font=("Arial", 16, "bold"), height=45,
-                                     command=self.ejecutar_benchmark)
+        self.btn_run = ctk.CTkButton(self.main_frame, text="⚡ EJECUTAR BENCHMARK", fg_color="#28a745", 
+                                     font=("Arial", 16, "bold"), height=45, command=self.ejecutar_benchmark)
         self.btn_run.pack(pady=20)
 
-        # Contenedor para resultados (se llena al ejecutar)
-        self.res_container = ctk.CTkFrame(self.main_frame, fg_color="#1e1e1e", border_width=1)
+        self.res_container = ctk.CTkFrame(self.main_frame, fg_color="#1e1e1e")
+
+    def generar_grafo_desde_texto(self, texto):
+        """Convierte texto en lista de adyacencia para los grafos"""
+        lineas = [l for l in texto.split() if l]
+        grafo = {}
+        for i, palabra in enumerate(lineas):
+            if i < 5000:
+                vecinos = set()
+                if i + 1 < len(lineas): vecinos.add(lineas[i+1])
+                if i + 2 < len(lineas): vecinos.add(lineas[i+2])
+                grafo[palabra] = vecinos
+        return grafo, lineas[0] if lineas else None
 
     def ejecutar_benchmark(self):
         if not self.archivo_contenido:
@@ -131,45 +137,54 @@ class BenchmarkingApp(ctk.CTk):
 
         res_final = ""
         
-        # --- LOGICA DE BENCHMARKING ---
         if self.tema_actual == "Encriptación":
-            # Medición Origen
             tracemalloc.start()
             start_t = time.perf_counter()
             _ = encriptar_cesar(self.archivo_contenido)
             end_t = time.perf_counter()
-            _, mem_o = tracemalloc.get_traced_memory()
-            tracemalloc.stop()
+            _, mem_o = tracemalloc.get_traced_memory(); tracemalloc.stop()
 
-            # Medición Optimizado
             tracemalloc.start()
             start_t2 = time.perf_counter()
             res_final = encriptar_cesar_optimizado(self.archivo_contenido)
             end_t2 = time.perf_counter()
-            _, mem_p = tracemalloc.get_traced_memory()
-            tracemalloc.stop()
+            _, mem_p = tracemalloc.get_traced_memory(); tracemalloc.stop()
 
         elif self.tema_actual == "Compresión de archivos":
-            # Medición Origen
             tracemalloc.start()
             start_t = time.perf_counter()
             _ = comprimir_origen(self.archivo_contenido)
             end_t = time.perf_counter()
-            _, mem_o = tracemalloc.get_traced_memory()
-            tracemalloc.stop()
+            _, mem_o = tracemalloc.get_traced_memory(); tracemalloc.stop()
 
-            # Medición Optimizado
             tracemalloc.start()
             start_t2 = time.perf_counter()
             res_final = comprimir_optimizado(self.archivo_contenido)
             end_t2 = time.perf_counter()
-            _, mem_p = tracemalloc.get_traced_memory()
-            tracemalloc.stop()
+            _, mem_p = tracemalloc.get_traced_memory(); tracemalloc.stop()
+            
+        elif self.tema_actual == "Recorrido de grafos":
+            grafo, inicio = self.generar_grafo_desde_texto(self.archivo_contenido)
+            if not inicio: return
+            
+            tracemalloc.start()
+            start_t = time.perf_counter()
+            _ = recorrido_bfs(grafo, inicio)
+            end_t = time.perf_counter()
+            _, mem_o = tracemalloc.get_traced_memory(); tracemalloc.stop()
+
+            tracemalloc.start()
+            start_t2 = time.perf_counter()
+            recorrido = recorrido_dfs(grafo, inicio)
+            res_final = " -> ".join(map(str, recorrido))  # Formatea el resultado con flechitas
+            end_t2 = time.perf_counter()
+            _, mem_p = tracemalloc.get_traced_memory(); tracemalloc.stop()
+            
         else:
             messagebox.showinfo("Pendiente", "Módulo en construcción.")
             return
 
-        # Cálculos
+        # Cálculos finales
         t_origen = (end_t - start_t) * 1000
         t_opt = (end_t2 - start_t2) * 1000
         m_origen = mem_o / (1024 * 1024)
@@ -177,6 +192,7 @@ class BenchmarkingApp(ctk.CTk):
 
         self.mostrar_resultados(t_origen, t_opt, m_origen, m_opt, res_final)
 
+    # AQUÍ ESTABA EL ERROR 2: Restauramos tu función de resultados bonita
     def mostrar_resultados(self, t1, t2, m1, m2, texto_salida):
         self.res_container.pack(fill="x", padx=30, pady=10)
         
@@ -186,7 +202,6 @@ class BenchmarkingApp(ctk.CTk):
         ctk.CTkLabel(self.res_container, text="📊 RESULTADOS DE HARDWARE", 
                      font=("Arial", 18, "bold"), text_color="yellow").pack(pady=10)
 
-        # Formato de métricas según tu rúbrica
         texto_stats = (
             f"⏱️ Tiempo de CPU (Origen): {t1:.4f} ms\n"
             f"⏱️ Tiempo de CPU (Optimizado): {t2:.4f} ms\n\n"
@@ -197,15 +212,14 @@ class BenchmarkingApp(ctk.CTk):
         lbl_stats = ctk.CTkLabel(self.res_container, text=texto_stats, font=("Consolas", 14), justify="left")
         lbl_stats.pack(pady=10)
 
-        # Sección de Vista Previa del Mensaje Incriptado/Comprimido
         ctk.CTkLabel(self.res_container, text="🔓 VISTA PREVIA DEL RESULTADO FINAL:", 
                      font=("Arial", 13, "bold")).pack()
         
         txt_res = ctk.CTkTextbox(self.res_container, height=80, width=850, fg_color="#000000")
         txt_res.pack(pady=15, padx=20)
         
-        # Limitar vista previa para no saturar la UI
-        preview_final = texto_salida[:500] + "\n\n[... Datos truncados por longitud ...]" if len(texto_salida) > 500 else texto_salida
+        # Inyecta el resultado final (ya sea encriptado, comprimido o el recorrido con flechas)
+        preview_final = str(texto_salida)[:500] + "\n\n[... Datos truncados por longitud ...]" if len(str(texto_salida)) > 500 else str(texto_salida)
         txt_res.insert("0.0", preview_final)
         txt_res.configure(state="disabled")
 
