@@ -8,7 +8,6 @@ class ArbolBinarioBusqueda:
     def __init__(self):
         self.raiz = None
 
-    # Método para insertar datos (Ideal para preparar el benchmarking)
     def insertar(self, valor):
         if self.raiz is None:
             self.raiz = Nodo(valor)
@@ -27,18 +26,31 @@ class ArbolBinarioBusqueda:
             else:
                 self._insertar_recursivo(nodo_actual.derecha, valor)
 
-    # Método de Búsqueda (Este es el que mediremos con psutil)
     def buscar(self, valor):
         return self._buscar_recursivo(self.raiz, valor)
 
     def _buscar_recursivo(self, nodo_actual, valor):
-        # Caso base: la raíz es nula o el valor está en la raíz
         if nodo_actual is None or nodo_actual.valor == valor:
             return nodo_actual
-        
-        # El valor es mayor que el valor de la raíz
         if nodo_actual.valor < valor:
             return self._buscar_recursivo(nodo_actual.derecha, valor)
-        
-        # El valor es menor que el valor de la raíz
         return self._buscar_recursivo(nodo_actual.izquierda, valor)
+
+    def generar_mapa_visual(self):
+        """Genera un dibujo en texto del árbol para la interfaz gráfica"""
+        lineas = []
+        def _recorrer(nodo, prefijo="", es_izquierdo=True):
+            if nodo is not None:
+                # Recorremos primero la derecha
+                if nodo.derecha:
+                    _recorrer(nodo.derecha, prefijo + ("│   " if es_izquierdo else "    "), False)
+                
+                # Nodo actual
+                lineas.append(prefijo + ("└── " if es_izquierdo else "┌── ") + str(nodo.valor))
+                
+                # Recorremos la izquierda
+                if nodo.izquierda:
+                    _recorrer(nodo.izquierda, prefijo + ("    " if es_izquierdo else "│   "), True)
+                    
+        _recorrer(self.raiz, "", True)
+        return "\n".join(lineas)

@@ -3,7 +3,7 @@ class NodoAVL:
         self.valor = valor
         self.izquierda = None
         self.derecha = None
-        self.altura = 1  # Llevamos un registro de la altura para calcular el balance
+        self.altura = 1
 
 class ArbolAVL:
     def __init__(self):
@@ -21,34 +21,26 @@ class ArbolAVL:
         else:
             nodo.derecha = self._insertar_recursivo(nodo.derecha, valor)
 
-        # 2. Actualizamos la altura del nodo actual
+        # 2. Actualizamos la altura
         nodo.altura = 1 + max(self._obtener_altura(nodo.izquierda), self._obtener_altura(nodo.derecha))
 
-        # 3. Obtenemos el factor de balance para ver si se enchuecó
+        # 3. Obtenemos el factor de balance
         balance = self._obtener_balance(nodo)
 
-        # 4. Si el nodo se desbalancea, aplicamos las 4 posibles rotaciones
-        # Caso Izquierda-Izquierda (Rotación Derecha)
+        # 4. Rotaciones para auto-balancear
         if balance > 1 and valor < nodo.izquierda.valor:
             return self._rotacion_derecha(nodo)
-        
-        # Caso Derecha-Derecha (Rotación Izquierda)
         if balance < -1 and valor > nodo.derecha.valor:
             return self._rotacion_izquierda(nodo)
-        
-        # Caso Izquierda-Derecha (Rotación Doble)
         if balance > 1 and valor > nodo.izquierda.valor:
             nodo.izquierda = self._rotacion_izquierda(nodo.izquierda)
             return self._rotacion_derecha(nodo)
-        
-        # Caso Derecha-Izquierda (Rotación Doble)
         if balance < -1 and valor < nodo.derecha.valor:
             nodo.derecha = self._rotacion_derecha(nodo.derecha)
             return self._rotacion_izquierda(nodo)
 
         return nodo
 
-    # --- Funciones matemáticas para balancear el árbol ---
     def _rotacion_izquierda(self, z):
         y = z.derecha
         T2 = y.izquierda
@@ -77,7 +69,6 @@ class ArbolAVL:
             return 0
         return self._obtener_altura(nodo.izquierda) - self._obtener_altura(nodo.derecha)
 
-    # --- Método de Búsqueda (Idéntico al original para que la competencia sea justa) ---
     def buscar(self, valor):
         return self._buscar_recursivo(self.raiz, valor)
 
@@ -87,3 +78,22 @@ class ArbolAVL:
         if nodo_actual.valor < valor:
             return self._buscar_recursivo(nodo_actual.derecha, valor)
         return self._buscar_recursivo(nodo_actual.izquierda, valor)
+
+    def generar_mapa_visual(self):
+        """Genera un dibujo en texto del árbol para la interfaz gráfica"""
+        lineas = []
+        def _recorrer(nodo, prefijo="", es_izquierdo=True):
+            if nodo is not None:
+                # Recorremos primero la derecha
+                if nodo.derecha:
+                    _recorrer(nodo.derecha, prefijo + ("│   " if es_izquierdo else "    "), False)
+                
+                # Nodo actual
+                lineas.append(prefijo + ("└── " if es_izquierdo else "┌── ") + str(nodo.valor))
+                
+                # Recorremos la izquierda
+                if nodo.izquierda:
+                    _recorrer(nodo.izquierda, prefijo + ("    " if es_izquierdo else "│   "), True)
+                    
+        _recorrer(self.raiz, "", True)
+        return "\n".join(lineas)
